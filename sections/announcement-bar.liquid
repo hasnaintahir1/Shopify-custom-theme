@@ -1,0 +1,45 @@
+<style>
+  .announcement-bar {
+    background-color: {{ section.settings.background_color }};
+    color: {{ section.settings.text_color }};
+    padding: 10px;
+    text-align: center;
+    font-size: 14px;
+  }
+</style>
+
+<div class="announcement-bar">
+  <div class="announcement-bar__text">{{ section.settings.text | escape }}</div>
+</div>
+
+{% schema %}
+{
+  "name": "Announcement bar",
+  "settings": [
+    {
+      "type": "text",
+      "id": "text",
+      "label": "Announcement text",
+      "default": "Welcome to our store"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "default": "#111111"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#ffffff"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Announcement bar",
+      "category": "Header Group"
+    }
+  ]
+}
+{% endschema %}

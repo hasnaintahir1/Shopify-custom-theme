@@ -1,36 +1,3 @@
-<main class="collection">
-  <header class="collection-heading">
-    <h1 class="collection-title">Collections</h1>
-  </header>
-
-  <div class="collection-grid">
-    {% for collection in collections %}
-      <article class="collection-card">
-        <a href="{{ collection.url }}">
-          {% if collection.featured_image %}
-            <img
-              src="{{ collection.featured_image | image_url: width: 800 }}"
-              alt="{{ collection.featured_image.alt | default: collection.title | escape }}"
-              loading="lazy"
-            >
-          {% elsif collection.products.first.featured_image %}
-            <img
-              src="{{ collection.products.first.featured_image | image_url: width: 700 }}"
-              alt="{{ collection.title | escape }}"
-              loading="lazy"
-            >
-          {% endif %}
-          <div class="collection-info">
-            <h2>{{ collection.title | escape }}</h2>
-          </div>
-        </a>
-      </article>
-    {% else %}
-      <p>No collections found.</p>
-    {% endfor %}
-  </div>
-</main>
-
 <style>
   .collection {
     --paper: #f5f2e9;
@@ -135,3 +102,35 @@
     .collection-card:nth-child(5n + 1) { aspect-ratio: 1.1; }
   }
 </style>
+<main class="collection">
+  <header class="collection-heading">
+    <h1 class="collection-title">Collections</h1>
+  </header>
+
+  <div class="collection-grid">
+    {% for collection in collections %}
+      <article class="collection-card">
+        <a href="{{ collection.url }}">
+          {% if collection.featured_image %}
+            <img
+              src="{{ collection.featured_image | image_url: width: 800 }}"
+              alt="{{ collection.featured_image.alt | default: collection.title | escape }}"
+              loading="lazy"
+            >
+          {% elsif collection.products.first.featured_image %}
+            <img
+              src="{{ collection.products.first.featured_image | image_url: width: 700 }}"
+              alt="{{ collection.title | escape }}"
+              loading="lazy"
+            >
+          {% endif %}
+          <div class="collection-info">
+            <h2>{{ collection.title | escape }}</h2>
+          </div>
+        </a>
+      </article>
+    {% else %}
+      <p>No collections found.</p>
+    {% endfor %}
+  </div>
+</main>
