@@ -1,0 +1,119 @@
+<main class="customer-account">
+  <h1>Log in</h1>
+
+  {% form 'customer_login' %}
+    {% if form.errors %}
+      <div class="customer-error" role="alert">{{ form.errors | default_errors }}</div>
+    {% endif %}
+
+    <div class="customer-field">
+      <label for="CustomerEmail">Email</label>
+      <input id="CustomerEmail" type="email" name="customer[email]" autocomplete="email" required>
+    </div>
+
+    <div class="customer-field">
+      <label for="CustomerPassword">Password</label>
+      <input id="CustomerPassword" type="password" name="customer[password]" autocomplete="current-password" required>
+    </div>
+
+    <button class="customer-button" type="submit">Sign in</button>
+  {% endform %}
+
+  <details class="customer-recovery" id="recover">
+    <summary>Forgot your password?</summary>
+    {% form 'recover_customer_password' %}
+      {% if form.posted_successfully? %}
+        <p class="customer-success">We sent you an email with a link to reset your password.</p>
+      {% endif %}
+      {% if form.errors %}
+        <div class="customer-error" role="alert">{{ form.errors | default_errors }}</div>
+      {% endif %}
+      <div class="customer-field">
+        <label for="RecoverEmail">Email</label>
+        <input id="RecoverEmail" type="email" name="email" autocomplete="email" required>
+      </div>
+      <button class="customer-button" type="submit">Send reset link</button>
+    {% endform %}
+  </details>
+
+  <p class="customer-switch">New here? <a href="{{ routes.account_register_url }}">Create an account</a></p>
+</main>
+
+<style>
+  .customer-account {
+    max-width: 460px;
+    margin: 0 auto;
+    padding: 56px 20px 80px;
+    color: #252722;
+  }
+  .customer-account h1 {
+    margin: 0 0 28px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 2.5rem;
+    font-weight: 400;
+  }
+  .customer-account form {
+    display: grid;
+    gap: 16px;
+  }
+  .customer-field label {
+    display: block;
+    margin-bottom: 7px;
+    font-size: 0.9rem;
+  }
+  .customer-field input {
+    width: 100%;
+    min-height: 48px;
+    padding: 10px 12px;
+    border: 1px solid #dfe2da;
+    border-radius: 6px;
+    background: #fff;
+    color: inherit;
+    font: inherit;
+  }
+  .customer-button {
+    min-height: 48px;
+    padding: 10px 18px;
+    border: 0;
+    border-radius: 6px;
+    background: #315c46;
+    color: #fff;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .customer-button:hover {
+    background: #244735;
+  }
+  .customer-recovery {
+    margin-top: 20px;
+  }
+  .customer-recovery summary {
+    color: #315c46;
+    cursor: pointer;
+  }
+  .customer-recovery form {
+    margin-top: 16px;
+  }
+  .customer-switch {
+    margin-top: 24px;
+    color: #72756f;
+  }
+  .customer-account a {
+    color: #315c46;
+  }
+  .customer-error {
+    padding: 12px;
+    border-radius: 6px;
+    background: #fff1ef;
+    color: #8b2d20;
+  }
+  .customer-success {
+    color: #315c46;
+  }
+  @media (max-width: 480px) {
+    .customer-account {
+      padding: 40px 18px 56px;
+    }
+  }
+</style>

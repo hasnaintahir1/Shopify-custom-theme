@@ -1,0 +1,13 @@
+[
+  {
+    "name": "Genjutsu",
+    "settings": [
+      {
+        "type": "text",
+        "id": "store_name",
+        "label": "Store name",
+        "default": "Genjutsu"
+      }
+    ]
+  }
+]

@@ -1,0 +1,137 @@
+<main class="collection">
+  <header class="collection-heading">
+    <h1 class="collection-title">Collections</h1>
+  </header>
+
+  <div class="collection-grid">
+    {% for collection in collections %}
+      <article class="collection-card">
+        <a href="{{ collection.url }}">
+          {% if collection.featured_image %}
+            <img
+              src="{{ collection.featured_image | image_url: width: 800 }}"
+              alt="{{ collection.featured_image.alt | default: collection.title | escape }}"
+              loading="lazy"
+            >
+          {% elsif collection.products.first.featured_image %}
+            <img
+              src="{{ collection.products.first.featured_image | image_url: width: 700 }}"
+              alt="{{ collection.title | escape }}"
+              loading="lazy"
+            >
+          {% endif %}
+          <div class="collection-info">
+            <h2>{{ collection.title | escape }}</h2>
+          </div>
+        </a>
+      </article>
+    {% else %}
+      <p>No collections found.</p>
+    {% endfor %}
+  </div>
+</main>
+
+<style>
+  .collection {
+    --paper: #f5f2e9;
+    --ink: #20231f;
+    max-width: 1440px;
+    margin: auto;
+    padding: clamp(32px, 6vw, 82px) clamp(20px, 5vw, 72px);
+    color: var(--ink);
+    background: var(--paper);
+  }
+  .collection-heading {
+    position: relative;
+    margin-bottom: 38px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #20231f40;
+  }
+  .collection-title {
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(3rem, 7vw, 6.5rem);
+    font-weight: 400;
+    line-height: .95;
+  }
+  .collection-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(14px, 2.4vw, 32px);
+  }
+  .collection-card {
+    position: relative;
+    min-width: 0;
+    aspect-ratio: .88;
+    background: #d8d4c9;
+    isolation: isolate;
+    clip-path: polygon(3% 0, 96% 2%, 100% 13%, 97% 94%, 90% 100%, 0 96%, 1% 10%);
+  }
+  .collection-card:nth-child(4n + 2) {
+    clip-path: polygon(0 5%, 91% 0, 100% 9%, 96% 100%, 8% 97%);
+  }
+  .collection-card:nth-child(4n + 3) {
+    clip-path: polygon(6% 0, 100% 5%, 96% 91%, 88% 100%, 0 96%, 2% 12%);
+  }
+  .collection-card:nth-child(4n) {
+    clip-path: polygon(0 8%, 8% 0, 100% 3%, 97% 94%, 91% 100%, 3% 97%);
+  }
+  .collection-card a {
+    position: absolute;
+    inset: 0;
+    color: #fff;
+    text-decoration: none;
+  }
+  .collection-card a::after {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(180deg, #15181300 34%, #151813d9 100%);
+    content: '';
+    transition: opacity .25s ease;
+  }
+  .collection-card img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .45s cubic-bezier(.2, .7, .2, 1);
+  }
+  .collection-card:hover img,
+  .collection-card a:focus-visible img {
+    transform: scale(1.055);
+  }
+  .collection-card a:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: -10px;
+  }
+  .collection-info {
+    position: absolute;
+    inset: auto 0 0;
+    z-index: 2;
+    padding: clamp(20px, 3vw, 38px);
+  }
+  .collection-info h2 {
+    max-width: 16ch;
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(1.5rem, 3vw, 2.7rem);
+    font-weight: 400;
+    line-height: 1.05;
+    text-wrap: balance;
+  }
+  @media (min-width: 1000px) {
+    .collection-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .collection-card:nth-child(5n + 1) {
+      grid-column: span 2;
+      aspect-ratio: 1.55;
+    }
+  }
+  @media (max-width: 520px) {
+    .collection { padding-inline: 16px; }
+    .collection-grid { grid-template-columns: 1fr; gap: 18px; }
+    .collection-card { aspect-ratio: 1.1; }
+    .collection-card:nth-child(5n + 1) { aspect-ratio: 1.1; }
+  }
+</style>

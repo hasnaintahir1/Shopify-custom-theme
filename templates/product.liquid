@@ -1,0 +1,332 @@
+<main class="product-page">
+  <div class="product-gallery">
+    <div class="product-image">
+      {% if product.featured_image %}
+        <img
+          id="ProductImage"
+          src="{{ product.featured_image | image_url: width: 1000 }}"
+          alt="{{ product.featured_image.alt | default: product.title | escape }}"
+        >
+      {% endif %}
+    </div>
+
+    {% if product.images.size > 1 %}
+      <div class="product-thumbnails" aria-label="Product images">
+        {% for image in product.images %}
+          <button
+            class="product-thumbnail{% if image.id == product.featured_image.id %} is-active{% endif %}"
+            type="button"
+            data-image="{{ image | image_url: width: 1000 }}"
+            data-alt="{{ image.alt | default: product.title | escape }}"
+            aria-label="Show image {{ forloop.index }}"
+            aria-pressed="{% if image.id == product.featured_image.id %}true{% else %}false{% endif %}"
+          >
+            <img src="{{ image | image_url: width: 140 }}" alt="" loading="lazy">
+          </button>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+
+  <section class="product-details">
+    <h1>{{ product.title | escape }}</h1>
+    <p class="product-price" id="ProductPrice">{{ product.selected_or_first_available_variant.price | money }}</p>
+
+    {% form 'product', product %}
+      <label class="variant-label" for="ProductVariant">Choose an option</label>
+      <select class="variant-select" id="ProductVariant" name="id">
+        {% for variant in product.variants %}
+          <option
+            value="{{ variant.id }}"
+            data-price="{{ variant.price | money | escape }}"
+            data-available="{{ variant.available }}"
+            {% if variant.id == product.selected_or_first_available_variant.id %}
+              selected
+            {% endif %}
+            {% unless variant.available %}
+              disabled
+            {% endunless %}
+          >
+            {{ variant.title | escape -}}
+            {%- unless variant.available %} - Sold out{% endunless %}
+          </option>
+        {% endfor %}
+      </select>
+      <div class="product-purchase-row">
+        <div class="quantity-control">
+          <button class="quantity-button" type="button" data-change="decrease" aria-label="Decrease quantity">-</button>
+          <input class="quantity-input" id="ProductQuantity" type="number" name="quantity" value="1" min="1" aria-label="Quantity">
+          <button class="quantity-button" type="button" data-change="increase" aria-label="Increase quantity">+</button>
+        </div>
+        <button
+          class="add-to-cart-btn"
+          id="AddToCartButton"
+          type="submit"
+          {% unless product.selected_or_first_available_variant.available %}
+            disabled
+          {% endunless %}
+        >
+          {% if product.selected_or_first_available_variant.available %}Add to cart{% else %}Sold out{% endif %}
+        </button>
+      </div>
+      {{ form | payment_button }}
+    {% endform %}
+
+    <div class="product-description">
+      {{ product.description }}
+    </div>
+  </section>
+</main>
+
+<style>
+  .product-page {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    align-items: start;
+    gap: clamp(24px, 5vw, 64px);
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 56px 24px;
+    color: #252722;
+  }
+
+  .product-gallery {
+    min-width: 0;
+  }
+
+  .product-details {
+    min-width: 0;
+  }
+
+  .product-details form {
+    display: grid;
+    gap: 12px;
+  }
+
+  .product-image {
+    overflow: hidden;
+    aspect-ratio: 4 / 5;
+    border-radius: 8px;
+    background: #f1f1ec;
+  }
+
+  .product-image img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 300ms ease;
+  }
+
+  .product-image:hover img {
+    transform: scale(1.06);
+  }
+
+  .product-thumbnails {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+    overflow-x: auto;
+  }
+
+  .product-thumbnail {
+    flex: 0 0 72px;
+    width: 72px;
+    height: 88px;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid #dfe2da;
+    border-radius: 6px;
+    background: #f1f1ec;
+    cursor: pointer;
+  }
+
+  .product-thumbnail.is-active {
+    border: 2px solid #315c46;
+  }
+
+  .product-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .product-details h1 {
+    margin: 0 0 16px;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    font-weight: 400;
+    line-height: 1.08;
+  }
+
+  .product-price {
+    margin: 0 0 26px;
+    font-size: 1.25rem;
+  }
+
+  .variant-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+  }
+
+  .variant-select {
+    display: block;
+    width: 100%;
+    min-height: 48px;
+    padding: 10px 12px;
+    border: 1px solid #dfe2da;
+    border-radius: 8px;
+    background: #fff;
+    color: inherit;
+    font: inherit;
+  }
+
+  .product-purchase-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .quantity-control {
+    display: flex;
+    align-items: center;
+    height: 46px;
+    border: 1px solid #dfe2da;
+    border-radius: 8px;
+  }
+
+  .quantity-button {
+    width: 34px;
+    height: 100%;
+    border: 0;
+    background: transparent;
+    color: #315c46;
+    font: inherit;
+    font-size: 1.1rem;
+    cursor: pointer;
+  }
+
+  .quantity-input {
+    width: 34px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: center;
+  }
+
+  .add-to-cart-btn {
+    display: block;
+    width: 100%;
+    min-height: 46px;
+    padding: 10px 14px;
+    border: 0;
+    border-radius: 8px;
+    background: #315c46;
+    color: #fff;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 180ms ease;
+  }
+
+  .shopify-payment-button {
+    width: 100%;
+  }
+
+  .shopify-payment-button__button {
+    min-height: 52px !important;
+    border-radius: 8px !important;
+  }
+
+  .add-to-cart-btn:hover {
+    background: #244735;
+  }
+
+  .add-to-cart-btn:disabled {
+    background: #8b9088;
+    cursor: not-allowed;
+  }
+
+  .product-description {
+    margin-top: 28px;
+    padding-top: 24px;
+    border-top: 1px solid #e1e3dc;
+    color: #62665f;
+    line-height: 1.7;
+  }
+
+  @media (max-width: 900px) {
+    .product-page {
+      grid-template-columns: 1fr;
+      gap: 28px;
+      padding: 32px 18px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .product-purchase-row {
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 8px;
+    }
+    .quantity-button {
+      width: 30px;
+    }
+    .quantity-input {
+      width: 30px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .product-image img {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  const mainImage = document.getElementById('ProductImage');
+  const thumbnails = document.querySelectorAll('.product-thumbnail');
+
+  thumbnails.forEach(function (thumbnail) {
+    thumbnail.addEventListener('click', function () {
+      mainImage.src = thumbnail.dataset.image;
+      mainImage.alt = thumbnail.dataset.alt;
+
+      thumbnails.forEach(function (item) {
+        item.classList.remove('is-active');
+        item.setAttribute('aria-pressed', 'false');
+      });
+
+      thumbnail.classList.add('is-active');
+      thumbnail.setAttribute('aria-pressed', 'true');
+    });
+  });
+
+  const variantSelect = document.getElementById('ProductVariant');
+  const productPrice = document.getElementById('ProductPrice');
+  const addToCartButton = document.getElementById('AddToCartButton');
+
+  variantSelect.addEventListener('change', function () {
+    const selectedOption = variantSelect.options[variantSelect.selectedIndex];
+    const isAvailable = selectedOption.dataset.available === 'true';
+
+    productPrice.textContent = selectedOption.dataset.price;
+    addToCartButton.disabled = !isAvailable;
+    addToCartButton.textContent = isAvailable ? 'Add to cart' : 'Sold out';
+  });
+
+  const quantityInput = document.getElementById('ProductQuantity');
+  const quantityButtons = document.querySelectorAll('.quantity-button');
+
+  quantityButtons.forEach(function (button) {
+    button.addEventListener('click', function () {
+      const currentQuantity = parseInt(quantityInput.value, 10) || 1;
+      const change = button.dataset.change === 'increase' ? 1 : -1;
+
+      quantityInput.value = Math.max(1, currentQuantity + change);
+    });
+  });
+</script>
