@@ -25,10 +25,15 @@
       "settings": {
         "menu": "main-menu"
       }
+    },
+    "side-cart":{
+      "type":"sidebar"
     }
   },
+  
   "order": [
     "announcement_bar_kYEfy4",
-    "header"
+    "header",
+    "side-cart"
   ]
 }

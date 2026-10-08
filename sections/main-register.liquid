@@ -44,16 +44,6 @@
   .customer-button:hover {
     background: #244735;
   }
-  .customer-recovery {
-    margin-top: 20px;
-  }
-  .customer-recovery summary {
-    color: #315c46;
-    cursor: pointer;
-  }
-  .customer-recovery form {
-    margin-top: 16px;
-  }
   .customer-switch {
     margin-top: 24px;
     color: #72756f;
@@ -67,9 +57,6 @@
     background: #fff1ef;
     color: #8b2d20;
   }
-  .customer-success {
-    color: #315c46;
-  }
   @media (max-width: 480px) {
     .customer-account {
       padding: 40px 18px 56px;
@@ -77,42 +64,48 @@
   }
 </style>
 <main class="customer-account">
-  <h1>Log in</h1>
+  <h1>Create account</h1>
 
-  {% form 'customer_login' %}
+  {% form 'create_customer' %}
     {% if form.errors %}
       <div class="customer-error" role="alert">{{ form.errors | default_errors }}</div>
     {% endif %}
 
     <div class="customer-field">
-      <label for="CustomerEmail">Email</label>
-      <input id="CustomerEmail" type="email" name="customer[email]" autocomplete="email" required>
+      <label for="FirstName">First name</label>
+      <input id="FirstName" type="text" name="customer[first_name]" autocomplete="given-name">
     </div>
 
     <div class="customer-field">
-      <label for="CustomerPassword">Password</label>
-      <input id="CustomerPassword" type="password" name="customer[password]" autocomplete="current-password" required>
+      <label for="LastName">Last name</label>
+      <input id="LastName" type="text" name="customer[last_name]" autocomplete="family-name">
     </div>
 
-    <button class="customer-button" type="submit">Sign in</button>
+    <div class="customer-field">
+      <label for="RegisterEmail">Email</label>
+      <input id="RegisterEmail" type="email" name="customer[email]" autocomplete="email" required>
+    </div>
+
+    <div class="customer-field">
+      <label for="RegisterPassword">Password</label>
+      <input id="RegisterPassword" type="password" name="customer[password]" autocomplete="new-password" required>
+    </div>
+
+    <button class="customer-button" type="submit">Create account</button>
   {% endform %}
 
-  <details class="customer-recovery" id="recover">
-    <summary>Forgot your password?</summary>
-    {% form 'recover_customer_password' %}
-      {% if form.posted_successfully? %}
-        <p class="customer-success">We sent you an email with a link to reset your password.</p>
-      {% endif %}
-      {% if form.errors %}
-        <div class="customer-error" role="alert">{{ form.errors | default_errors }}</div>
-      {% endif %}
-      <div class="customer-field">
-        <label for="RecoverEmail">Email</label>
-        <input id="RecoverEmail" type="email" name="email" autocomplete="email" required>
-      </div>
-      <button class="customer-button" type="submit">Send reset link</button>
-    {% endform %}
-  </details>
-
-  <p class="customer-switch">New here? <a href="{{ routes.account_register_url }}">Create an account</a></p>
+  <p class="customer-switch">Already have an account? <a href="{{ routes.account_login_url }}">Log in</a></p>
 </main>
+
+{% schema %}
+{
+  "name": "Main register",
+  "settings": [],
+  "presets": [
+    {
+      "name": "Main register",
+      "category": "Customer accounts"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,45 @@
+<a
+  class="button"
+  href="{{ block.settings.button_link | default: '#' }}"
+  style="background-color: {{ block.settings.background_color }}; color: {{ block.settings.text_color }};"
+  {{ block.shopify_attributes }}
+>
+  {{ block.settings.button_text | default: 'Button' | escape }}
+</a>
+
+{% schema %}
+{
+  "name": "Button",
+  "settings": [
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button text",
+      "default": "Button"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#ffffff"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Custom button",
+	  "category": "Custom"
+    }
+  ]
+}
+{% endschema %}

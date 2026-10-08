@@ -1,0 +1,39 @@
+{% if block.settings.image != blank %}
+  {{
+    block.settings.image
+    | image_url: width: 2400
+    | image_tag:
+      class: 'image-block__image',
+      widths: '320, 480, 640, 960, 1280, 1600, 2000, 2400',
+      sizes: '(min-width: 750px) 100vw, 100vw',
+      loading: 'lazy',
+      alt: block.settings.image.alt
+  }}
+{% endif %}
+
+{% stylesheet %}
+  .image-block__image {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Image",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Image",
+      "category": "Custom"
+    }
+  ]
+}
+{% endschema %}

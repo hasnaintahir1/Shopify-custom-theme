@@ -1,0 +1,44 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-product",
+      "blocks": {
+        "product-media": {
+          "type": "media"
+        },
+        "product-title": {
+          "type": "title"
+        },
+        "product-price": {
+          "type": "price"
+        },
+        "variant-picker": {
+          "type": "variant_picker",
+          "settings": {
+            "label": "Choose an option"
+          }
+        },
+        "buy-buttons": {
+          "type": "purchase",
+          "settings": {
+            "show_payment_button": true
+          }
+        },
+        "product-description": {
+          "type": "description"
+        }
+      },
+      "block_order": [
+        "product-media",
+        "product-title",
+        "product-price",
+        "variant-picker",
+        "buy-buttons",
+        "product-description"
+      ]
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

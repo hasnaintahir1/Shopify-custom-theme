@@ -5,16 +5,51 @@
     "footer": {
       "type": "footer",
       "blocks": {
+        "footer-brand": {
+          "type": "brand",
+          "settings": {
+            "brand_name": "",
+            "description": "Thoughtfully selected essentials, made to bring a little more joy to every day."
+          }
+        },
+        "footer-newsletter": {
+          "type": "newsletter",
+          "settings": {
+            "heading": "A little good news",
+            "description": "Sign up for new arrivals, thoughtful updates, and 10% off your first order.",
+            "email_placeholder": "Your email address",
+            "button_label": "Subscribe",
+            "success_message": "Thanks for subscribing!"
+          }
+        },
         "footer-menu-shop": {
           "type": "menu",
           "settings": {
             "heading": "Explore",
             "menu": "main-menu"
           }
+        },
+        "footer-copyright": {
+          "type": "copyright",
+          "settings": {
+            "brand_name": "",
+            "text": "All rights reserved."
+          }
+        },
+        "footer-payments": {
+          "type": "payments"
+        },
+        "footer-policies": {
+          "type": "policies"
         }
       },
       "block_order": [
-        "footer-menu-shop"
+        "footer-brand",
+        "footer-newsletter",
+        "footer-menu-shop",
+        "footer-copyright",
+        "footer-payments",
+        "footer-policies"
       ]
     }
   },

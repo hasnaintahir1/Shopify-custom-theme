@@ -1,0 +1,392 @@
+
+<sidebar-drawer class="sidebar-drawer">
+	<div
+		class="sidebar-drawer__backdrop"
+		role="button"
+		tabindex="0"
+		aria-label="Close sidebar"
+		data-drawer-close
+	></div>
+
+	<aside
+		class="sidebar-drawer__panel"
+		id="CartDrawer-{{ section.id }}"
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="CartDrawerHeading-{{ section.id }}"
+		tabindex="-1"
+	>
+		<header class="sidebar-drawer__header">
+			<h2 id="CartDrawerHeading-{{ section.id }}">{{ section.settings.heading | escape }}</h2>
+			<button class="sidebar-drawer__close" type="button" aria-label="Close sidebar" data-drawer-close>
+				<span aria-hidden="true">&times;</span>
+			</button>
+		</header>
+		<div class="sidebar-drawer__content">
+			{% if cart.item_count > 0 %}
+				<ul class="sidebar-cart__items">
+					{% for item in cart.items %}
+						<li class="sidebar-cart__item">
+							{% if item.image %}
+								<a class="sidebar-cart__image" href="{{ item.url }}">
+									{{ item.image | image_url: width: 180 | image_tag: loading: 'lazy', alt: item.image.alt | default: item.product.title }}
+								</a>
+							{% endif %}
+							<div class="sidebar-cart__details">
+								<a class="sidebar-cart__title" href="{{ item.url }}">{{ item.product.title | escape }}</a>
+								{% unless item.product.has_only_default_variant %}
+									<p class="sidebar-cart__variant">{{ item.variant.title | escape }}</p>
+								{% endunless %}
+								<p class="sidebar-cart__quantity">{{ section.settings.quantity_label | escape }}: {{ item.quantity }}</p>
+								<p class="sidebar-cart__price">{{ item.final_line_price | money }}</p>
+							</div>
+						</li>
+					{% endfor %}
+				</ul>
+				<div class="sidebar-cart__subtotal">
+					<span>{{ section.settings.subtotal_label | escape }}</span>
+					<strong>{{ cart.total_price | money }}</strong>
+				</div>
+				<p class="sidebar-cart__note">{{ section.settings.shipping_note | escape }}</p>
+				<form action="{{ routes.cart_url }}" method="post">
+					<button class="sidebar-cart__checkout" type="submit" name="checkout">{{ section.settings.checkout_label | escape }}</button>
+				</form>
+				<a class="sidebar-cart__view" href="{{ routes.cart_url }}">{{ section.settings.view_cart_label | escape }}</a>
+			{% else %}
+				<div class="sidebar-cart__empty">
+					<p>{{ section.settings.empty_text | escape }}</p>
+					<a class="sidebar-cart__checkout" href="{{ routes.all_products_collection_url }}">{{ section.settings.continue_label | escape }}</a>
+				</div>
+			{% endif %}
+			{{ section.settings.content }}
+		</div>
+	</aside>
+</sidebar-drawer>
+
+<style>
+	.sidebar-drawer {
+		display: contents;
+	}
+
+	.sidebar-drawer__trigger,
+	.sidebar-drawer__close,
+	.sidebar-drawer__backdrop {
+		cursor: pointer;
+	}
+
+	.sidebar-drawer__trigger:focus-visible,
+	.sidebar-drawer__close:focus-visible,
+	.sidebar-drawer__backdrop:focus-visible {
+		outline: 2px solid #171717;
+		outline-offset: 2px;
+	}
+
+	.sidebar-drawer__backdrop {
+		position: fixed;
+		inset: 0;
+		z-index: 9998;
+		width: 100%;
+		height: 100%;
+		padding: 0;
+		border: 0;
+		background: rgb(0 0 0 / 45%);
+		opacity: 0;
+		visibility: hidden;
+		pointer-events: none;
+		transition: opacity 250ms ease, visibility 0s linear 250ms;
+	}
+
+	.sidebar-drawer__panel {
+		position: fixed;
+		inset: 0 0 0 auto;
+		z-index: 9999;
+		box-sizing: border-box;
+		display: flex;
+		flex-direction: column;
+		width: min(550px, 100vw);
+		height: 100vh;
+		height: 100dvh;
+		padding: 28px;
+		overflow-y: auto;
+		background: #fff;
+		color: #171717;
+		box-shadow: -8px 0 32px rgb(0 0 0 / 14%);
+		transform: translateX(100%);
+		visibility: hidden;
+		transition: transform 250ms ease, visibility 0s linear 250ms;
+	}
+
+	.sidebar-drawer__header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 16px;
+		padding-bottom: 20px;
+		border-bottom: 1px solid #e5e5e5;
+	}
+
+	.sidebar-drawer__header h2 {
+		margin: 0;
+		font-size: 1.5rem;
+	}
+
+	.sidebar-drawer__close {
+		display: grid;
+		width: 40px;
+		height: 40px;
+		place-items: center;
+		border: 0;
+		border-radius: 50%;
+		background: transparent;
+		color: inherit;
+		font-size: 30px;
+		line-height: 1;
+		cursor: pointer;
+	}
+
+	.sidebar-drawer__close:hover {
+		background: #f2f2f2;
+	}
+
+	.sidebar-drawer__content {
+		padding-top: 20px;
+	}
+
+	.sidebar-cart__items {
+		display: grid;
+		gap: 18px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.sidebar-cart__item {
+		display: grid;
+		grid-template-columns: 84px minmax(0, 1fr);
+		gap: 14px;
+		padding-bottom: 18px;
+		border-bottom: 1px solid #e5e5e5;
+	}
+
+	.sidebar-cart__image {
+		display: block;
+		overflow: hidden;
+		aspect-ratio: 1;
+		border-radius: 6px;
+		background: #f3f3f0;
+	}
+
+	.sidebar-cart__image img {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.sidebar-cart__details p {
+		margin: 5px 0 0;
+		color: #686b65;
+		font-size: 0.88rem;
+	}
+
+	.sidebar-cart__title {
+		color: inherit;
+		font-weight: 600;
+		text-decoration: none;
+	}
+
+	.sidebar-cart__subtotal {
+		display: flex;
+		justify-content: space-between;
+		gap: 16px;
+		margin-top: 22px;
+		padding-top: 18px;
+		border-top: 1px solid #e5e5e5;
+	}
+
+	.sidebar-cart__note {
+		margin: 10px 0 18px;
+		color: #686b65;
+		font-size: 0.85rem;
+	}
+
+	.sidebar-cart__checkout {
+		display: flex;
+		width: 100%;
+		min-height: 48px;
+		align-items: center;
+		justify-content: center;
+		padding: 10px 16px;
+		border-radius: 6px;
+		background: #315c46;
+		color: #fff;
+		font-weight: 600;
+		text-decoration: none;
+		font: inherit;
+		font-weight: 600;
+		cursor: pointer;
+	}
+
+	.sidebar-cart__checkout:hover {
+		background: #244735;
+	}
+
+	.sidebar-cart__view {
+		display: block;
+		margin-top: 14px;
+		color: inherit;
+		text-align: center;
+		text-underline-offset: 3px;
+	}
+
+	.sidebar-cart__empty {
+		display: grid;
+		gap: 12px;
+		text-align: center;
+	}
+
+	.sidebar-drawer[open] .sidebar-drawer__backdrop {
+		opacity: 1;
+		visibility: visible;
+		pointer-events: auto;
+		transition-delay: 0s;
+	}
+
+	.sidebar-drawer[open] .sidebar-drawer__panel {
+		transform: translateX(0);
+		visibility: visible;
+		transition-delay: 0s;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.sidebar-drawer__backdrop,
+		.sidebar-drawer__panel {
+			transition-duration: 0.01ms;
+		}
+	}
+</style>
+
+<script>
+	if (!customElements.get('sidebar-drawer')) {
+		customElements.define('sidebar-drawer', class extends HTMLElement {
+			connectedCallback() {
+				this.panel = this.querySelector('.sidebar-drawer__panel');
+				this.activeTrigger = null;
+				this.openDrawer = (trigger) => {
+					this.activeTrigger = trigger;
+					this.setAttribute('open', '');
+					this.activeTrigger?.setAttribute('aria-expanded', 'true');
+					this.activeTrigger?.setAttribute('aria-controls', this.panel?.id || '');
+					this.panel?.focus();
+				};
+				this.closeDrawer = () => {
+					this.removeAttribute('open');
+					this.activeTrigger?.setAttribute('aria-expanded', 'false');
+					this.activeTrigger?.focus();
+					this.activeTrigger = null;
+				};
+				this.onCartTriggerClick = (event) => {
+					const cartLink = event.target.closest('[data-cart-drawer-trigger]');
+					if (
+						!cartLink ||
+						document.querySelector('sidebar-drawer') !== this ||
+						event.button !== 0 ||
+						event.metaKey ||
+						event.ctrlKey ||
+						event.shiftKey ||
+						event.altKey
+					) return;
+
+					event.preventDefault();
+					this.openDrawer(cartLink);
+				};
+				this.onKeydown = (event) => {
+					if (event.key === 'Escape' && this.hasAttribute('open')) this.closeDrawer();
+				};
+				this.onCloseKeydown = (event) => {
+					if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+						event.preventDefault();
+						this.closeDrawer();
+					}
+				};
+
+				this.querySelectorAll('[data-drawer-close]').forEach((button) => {
+					button.addEventListener('click', this.closeDrawer);
+					button.addEventListener('keydown', this.onCloseKeydown);
+				});
+				document.addEventListener('click', this.onCartTriggerClick);
+				document.addEventListener('keydown', this.onKeydown);
+			}
+
+			disconnectedCallback() {
+				this.querySelectorAll('[data-drawer-close]').forEach((button) => {
+					button.removeEventListener('click', this.closeDrawer);
+					button.removeEventListener('keydown', this.onCloseKeydown);
+				});
+				document.removeEventListener('click', this.onCartTriggerClick);
+				document.removeEventListener('keydown', this.onKeydown);
+			}
+		});
+	}
+</script>
+
+{% schema %}
+{
+  "name": "Cart drawer",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Drawer heading",
+      "default": "Your cart"
+    },
+    {
+      "type": "text",
+      "id": "empty_text",
+      "label": "Empty cart message",
+      "default": "Your cart is currently empty."
+    },
+    {
+      "type": "text",
+      "id": "quantity_label",
+      "label": "Quantity label",
+      "default": "Qty"
+    },
+    {
+      "type": "text",
+      "id": "subtotal_label",
+      "label": "Subtotal label",
+      "default": "Subtotal"
+    },
+    {
+      "type": "text",
+      "id": "shipping_note",
+      "label": "Shipping note",
+      "default": "Taxes and shipping are calculated at checkout."
+    },
+    {
+      "type": "text",
+      "id": "checkout_label",
+      "label": "Checkout button label",
+      "default": "Go to checkout"
+    },
+    {
+      "type": "text",
+      "id": "view_cart_label",
+      "label": "View cart link label",
+      "default": "View cart"
+    },
+    {
+      "type": "text",
+      "id": "continue_label",
+      "label": "Continue shopping label",
+      "default": "Continue shopping"
+    },
+    {
+      "type": "richtext",
+      "id": "content",
+      "label": "Additional drawer content"
+    }
+  ]
+}
+{% endschema %}

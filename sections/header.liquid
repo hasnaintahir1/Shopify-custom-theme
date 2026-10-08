@@ -10,6 +10,19 @@
     border-bottom: 1px solid var(--header-line);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
+
+  .store-header--fixed {
+    position: fixed;
+    top: var(--header-fixed-top, 0px);
+    left: 0;
+    right: 0;
+  }
+
+  .store-header__fixed-spacer {
+    display: block;
+    width: 100%;
+    pointer-events: none;
+  }
   .store-header__inner {
     max-width: 1440px;
     min-height: 82px;
@@ -168,7 +181,13 @@
     }
   }
 </style>
-<header class="store-header" data-section-id="{{ section.id }}">
+<header
+  class="store-header{% if section.settings.position_behavior == 'fixed' %} store-header--fixed{% endif %}"
+  data-section-id="{{ section.id }}"
+  {% if section.settings.position_behavior == 'fixed' %}
+    data-fixed-header
+  {% endif %}
+>
   <div class="store-header__inner">
     <details class="store-header__mobile-menu">
       <summary class="store-header__icon-button" aria-label="Open menu">
@@ -229,6 +248,8 @@
         class="store-header__icon-button store-header__cart"
         href="{{ routes.cart_url }}"
         aria-label="Cart, {{ cart.item_count }} items"
+        aria-expanded="false"
+        data-cart-drawer-trigger
       >
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M3 4h2l2.1 11.2a2 2 0 0 0 2 1.6h8.8a2 2 0 0 0 2-1.6L21 8H6" /><circle cx="10" cy="21" r="1" /><circle cx="18" cy="21" r="1" />
@@ -241,6 +262,43 @@
   </div>
 </header>
 
+{% if section.settings.position_behavior == 'fixed' %}
+  <script>
+    (() => {
+      const header = document.querySelector('[data-section-id="{{ section.id }}"][data-fixed-header]');
+      if (!header || header.dataset.fixedHeaderInitialized) return;
+
+      header.dataset.fixedHeaderInitialized = 'true';
+
+      const spacer = document.createElement('div');
+      spacer.className = 'store-header__fixed-spacer';
+      spacer.setAttribute('aria-hidden', 'true');
+      header.after(spacer);
+
+      const announcementBar = document.querySelector('.announcement-bar');
+
+      const updateHeaderLayout = () => {
+        spacer.style.height = `${header.offsetHeight}px`;
+
+        const offset = announcementBar
+          ? Math.max(0, announcementBar.getBoundingClientRect().bottom)
+          : 0;
+
+        header.style.setProperty('--header-fixed-top', `${offset}px`);
+      };
+
+      updateHeaderLayout();
+      window.addEventListener('scroll', updateHeaderLayout, { passive: true });
+      window.addEventListener('resize', updateHeaderLayout);
+
+      if ('ResizeObserver' in window) {
+        const resizeObserver = new ResizeObserver(updateHeaderLayout);
+        resizeObserver.observe(header);
+      }
+    })();
+  </script>
+{% endif %}
+
 {% schema %}
 {
   "name": "Store header",
@@ -248,6 +306,16 @@
     "groups": ["header"]
   },
   "settings": [
+    {
+      "type": "select",
+      "id": "position_behavior",
+      "label": "Header position",
+      "default": "static",
+      "options": [
+        { "value": "static", "label": "Normal" },
+        { "value": "fixed", "label": "Fixed to the top" }
+      ]
+    },
     {
       "type": "link_list",
       "id": "menu",
@@ -257,7 +325,8 @@
   ],
   "presets": [
     {
-      "name": "Store header"
+      "name": "Store header",
+      "category": "Header"
     }
   ]
 }
