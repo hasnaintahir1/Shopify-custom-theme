@@ -3,9 +3,24 @@
   <head>
     <title>{{ page_title }}</title>
     {{ content_for_header }}
+    <style>
+            {{ settings.heading_font | font_face: font_display: 'swap' }}
+            {{ settings.body_font | font_face: font_display: 'swap' }}
+            :root {
+              --font-heading--family: {{ settings.heading_font.family }}, {{ settings.heading_font.fallback_families }};
+              --font-body--family: {{ settings.body_font.family }}, {{ settings.body_font.fallback_families }};
+            }
+            body{
+          margin: 0;
+      }
+      h1, h2, h3, h4, h5, h6 {
+          font-family: var(--font-heading--family);
+      }
+    </style>
   </head>
   <body>
     {% sections 'header-group' %}
     {{ content_for_layout }}
+    {% sections 'footer-group' %}
   </body>
 </html>

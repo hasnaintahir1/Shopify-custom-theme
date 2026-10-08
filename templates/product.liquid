@@ -153,7 +153,7 @@
 
   .product-details h1 {
     margin: 0 0 16px;
-    font-family: Georgia, 'Times New Roman', serif;
+    font-family: var(--font-heading--family);
     font-size: clamp(2rem, 4vw, 3.5rem);
     font-weight: 400;
     line-height: 1.08;
@@ -287,46 +287,55 @@
 </style>
 
 <script>
-  const mainImage = document.getElementById('ProductImage');
-  const thumbnails = document.querySelectorAll('.product-thumbnail');
+  (() => {
+    const root = document.querySelector('.product-page');
+    if (!root) return;
 
-  thumbnails.forEach(function (thumbnail) {
-    thumbnail.addEventListener('click', function () {
-      mainImage.src = thumbnail.dataset.image;
-      mainImage.alt = thumbnail.dataset.alt;
+    const mainImage = root.querySelector('#ProductImage');
+    const thumbnails = root.querySelectorAll('.product-thumbnail');
 
-      thumbnails.forEach(function (item) {
-        item.classList.remove('is-active');
-        item.setAttribute('aria-pressed', 'false');
+    thumbnails.forEach(function (thumbnail) {
+      thumbnail.addEventListener('click', function () {
+        if (!mainImage) return;
+        mainImage.src = thumbnail.dataset.image;
+        mainImage.alt = thumbnail.dataset.alt;
+
+        thumbnails.forEach(function (item) {
+          item.classList.remove('is-active');
+          item.setAttribute('aria-pressed', 'false');
+        });
+
+        thumbnail.classList.add('is-active');
+        thumbnail.setAttribute('aria-pressed', 'true');
       });
-
-      thumbnail.classList.add('is-active');
-      thumbnail.setAttribute('aria-pressed', 'true');
     });
-  });
 
-  const variantSelect = document.getElementById('ProductVariant');
-  const productPrice = document.getElementById('ProductPrice');
-  const addToCartButton = document.getElementById('AddToCartButton');
+    const variantSelect = root.querySelector('#ProductVariant');
+    const productPrice = root.querySelector('#ProductPrice');
+    const addToCartButton = root.querySelector('#AddToCartButton');
 
-  variantSelect.addEventListener('change', function () {
-    const selectedOption = variantSelect.options[variantSelect.selectedIndex];
-    const isAvailable = selectedOption.dataset.available === 'true';
+    if (variantSelect && productPrice && addToCartButton) {
+      variantSelect.addEventListener('change', function () {
+        const selectedOption = variantSelect.options[variantSelect.selectedIndex];
+        const isAvailable = selectedOption.dataset.available === 'true';
 
-    productPrice.textContent = selectedOption.dataset.price;
-    addToCartButton.disabled = !isAvailable;
-    addToCartButton.textContent = isAvailable ? 'Add to cart' : 'Sold out';
-  });
+        productPrice.textContent = selectedOption.dataset.price;
+        addToCartButton.disabled = !isAvailable;
+        addToCartButton.textContent = isAvailable ? 'Add to cart' : 'Sold out';
+      });
+    }
 
-  const quantityInput = document.getElementById('ProductQuantity');
-  const quantityButtons = document.querySelectorAll('.quantity-button');
+    const quantityInput = root.querySelector('#ProductQuantity');
+    const quantityButtons = root.querySelectorAll('.quantity-button');
 
-  quantityButtons.forEach(function (button) {
-    button.addEventListener('click', function () {
-      const currentQuantity = parseInt(quantityInput.value, 10) || 1;
-      const change = button.dataset.change === 'increase' ? 1 : -1;
+    quantityButtons.forEach(function (button) {
+      button.addEventListener('click', function () {
+        if (!quantityInput) return;
+        const currentQuantity = parseInt(quantityInput.value, 10) || 1;
+        const change = button.dataset.change === 'increase' ? 1 : -1;
 
-      quantityInput.value = Math.max(1, currentQuantity + change);
+        quantityInput.value = Math.max(1, currentQuantity + change);
+      });
     });
-  });
+  })();
 </script>
