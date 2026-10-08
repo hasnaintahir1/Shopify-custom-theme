@@ -3,15 +3,16 @@
   id="ProductMain-{{ section.id }}"
   class="product-page{% if product_media_blocks.size == 0 %} product-page--no-media{% endif %}"
 >
+  {% assign selected_variant_image = product.selected_or_first_available_variant.featured_image | default: product.featured_image %}
   {% for block in section.blocks %}
     {% if block.type == 'media' %}
       <div class="product-gallery" {{ block.shopify_attributes }}>
         <div class="product-image">
-          {% if product.featured_image %}
+          {% if selected_variant_image %}
             <img
               id="ProductImage"
-              src="{{ product.featured_image | image_url: width: 1000 }}"
-              alt="{{ product.featured_image.alt | default: product.title | escape }}"
+              src="{{ selected_variant_image | image_url: width: 1000 }}"
+              alt="{{ selected_variant_image.alt | default: product.title | escape }}"
             >
           {% endif %}
         </div>
@@ -20,12 +21,12 @@
           <div class="product-thumbnails" aria-label="Product images">
             {% for image in product.images %}
               <button
-                class="product-thumbnail{% if image.id == product.featured_image.id %} is-active{% endif %}"
+                class="product-thumbnail{% if image.id == selected_variant_image.id %} is-active{% endif %}"
                 type="button"
                 data-image="{{ image | image_url: width: 1000 }}"
                 data-alt="{{ image.alt | default: product.title | escape }}"
                 aria-label="Show image {{ forloop.index }}"
-                aria-pressed="{% if image.id == product.featured_image.id %}true{% else %}false{% endif %}"
+                aria-pressed="{% if image.id == selected_variant_image.id %}true{% else %}false{% endif %}"
               >
                 <img src="{{ image | image_url: width: 140 }}" alt="" loading="lazy">
               </button>
@@ -37,7 +38,7 @@
   {% endfor %}
 
   <section class="product-details">
-    {% form 'product', product %}
+    {% form 'product', product, class: 'product-form' %}
       {% assign variant_picker_blocks = section.blocks | where: 'type', 'variant_picker' %}
       {% if product.has_only_default_variant or variant_picker_blocks.size == 0 %}
         <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
@@ -63,10 +64,13 @@
                 </label>
                 <select class="variant-select" id="ProductVariant-{{ section.id }}" data-product-variant name="id">
                   {% for variant in product.variants %}
+                    {% assign variant_image = variant.featured_image | default: product.featured_image %}
                     <option
                       value="{{ variant.id }}"
                       data-price="{{ variant.price | money | escape }}"
                       data-available="{{ variant.available }}"
+                      data-image="{% if variant_image %}{{ variant_image | image_url: width: 1000 }}{% endif %}"
+                      data-image-alt="{{ variant_image.alt | default: product.title | escape }}"
                       {% if variant.id == product.selected_or_first_available_variant.id %}
                         selected
                       {% endif %}
@@ -249,12 +253,34 @@
     display: block;
     width: 100%;
     min-height: 48px;
-    padding: 10px 12px;
+    padding: 10px 44px 10px 14px;
     border: 1px solid #dfe2da;
     border-radius: 8px;
     background: #fff;
     color: inherit;
     font: inherit;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none' stroke='%23315c46' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m3 6 5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    transition: border-color 160ms ease, box-shadow 160ms ease;
+  }
+
+  .variant-select:hover,
+  .variant-select:focus-visible {
+    border-color: #315c46;
+    box-shadow: 0 0 0 3px #315c461a;
+    outline: none;
+  }
+
+  .quantity-button:hover {
+    background: #f3f6f2;
+  }
+
+  .quantity-input:focus-visible {
+    outline: 2px solid #315c46;
+    outline-offset: 2px;
   }
 
   .product-purchase-row {
@@ -393,28 +419,48 @@
     const productPrice = root.querySelector('[data-product-price]');
     const addToCartButton = root.querySelector('[data-add-to-cart]');
 
-    if (variantSelect && addToCartButton) {
+    const updateSelectedImage = (imageUrl, imageAlt) => {
+      if (!mainImage || !imageUrl) return;
+
+      mainImage.src = imageUrl;
+      mainImage.alt = imageAlt || '';
+      thumbnails.forEach(function (thumbnail) {
+        const isActive = thumbnail.dataset.image === imageUrl;
+        thumbnail.classList.toggle('is-active', isActive);
+        thumbnail.setAttribute('aria-pressed', String(isActive));
+      });
+    };
+
+    if (variantSelect) {
       variantSelect.addEventListener('change', function () {
         const selectedOption = variantSelect.options[variantSelect.selectedIndex];
         const isAvailable = selectedOption.dataset.available === 'true';
 
         if (productPrice) productPrice.textContent = selectedOption.dataset.price;
-        addToCartButton.disabled = !isAvailable;
-        addToCartButton.textContent = isAvailable ? 'Add to cart' : 'Sold out';
+        if (addToCartButton) {
+          addToCartButton.disabled = !isAvailable;
+          addToCartButton.textContent = isAvailable ? 'Add to cart' : 'Sold out';
+        }
+        updateSelectedImage(selectedOption.dataset.image, selectedOption.dataset.imageAlt);
       });
     }
 
-    const quantityInput = root.querySelector('#ProductQuantity');
-    const quantityButtons = root.querySelectorAll('.quantity-button');
+    root.addEventListener('click', function (event) {
+      const button = event.target.closest('.quantity-button[data-change]');
+      if (!button || !root.contains(button)) return;
 
-    quantityButtons.forEach(function (button) {
-      button.addEventListener('click', function () {
-        if (!quantityInput) return;
-        const currentQuantity = parseInt(quantityInput.value, 10) || 1;
-        const change = button.dataset.change === 'increase' ? 1 : -1;
+      const quantityControl = button.closest('.quantity-control');
+      const quantityInput = quantityControl?.querySelector('input[name="quantity"]');
+      if (!quantityInput) return;
 
-        quantityInput.value = Math.max(1, currentQuantity + change);
-      });
+      event.preventDefault();
+      const minimum = Number(quantityInput.min) || 1;
+      const maximum = quantityInput.max ? Number(quantityInput.max) : Number.POSITIVE_INFINITY;
+      const current = Number.parseInt(quantityInput.value, 10) || minimum;
+      const adjustment = button.dataset.change === 'increase' ? 1 : -1;
+      quantityInput.value = String(Math.min(maximum, Math.max(minimum, current + adjustment)));
+      quantityInput.dispatchEvent(new Event('input', { bubbles: true }));
+      quantityInput.dispatchEvent(new Event('change', { bubbles: true }));
     });
   })();
 </script>

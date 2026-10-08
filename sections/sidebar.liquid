@@ -23,41 +23,70 @@
 			</button>
 		</header>
 		<div class="sidebar-drawer__content">
-			{% if cart.item_count > 0 %}
-				<ul class="sidebar-cart__items">
-					{% for item in cart.items %}
-						<li class="sidebar-cart__item">
-							{% if item.image %}
-								<a class="sidebar-cart__image" href="{{ item.url }}">
-									{{ item.image | image_url: width: 180 | image_tag: loading: 'lazy', alt: item.image.alt | default: item.product.title }}
-								</a>
-							{% endif %}
-							<div class="sidebar-cart__details">
-								<a class="sidebar-cart__title" href="{{ item.url }}">{{ item.product.title | escape }}</a>
-								{% unless item.product.has_only_default_variant %}
-									<p class="sidebar-cart__variant">{{ item.variant.title | escape }}</p>
-								{% endunless %}
-								<p class="sidebar-cart__quantity">{{ section.settings.quantity_label | escape }}: {{ item.quantity }}</p>
-								<p class="sidebar-cart__price">{{ item.final_line_price | money }}</p>
-							</div>
-						</li>
-					{% endfor %}
-				</ul>
-				<div class="sidebar-cart__subtotal">
-					<span>{{ section.settings.subtotal_label | escape }}</span>
-					<strong>{{ cart.total_price | money }}</strong>
-				</div>
-				<p class="sidebar-cart__note">{{ section.settings.shipping_note | escape }}</p>
-				<form action="{{ routes.cart_url }}" method="post">
-					<button class="sidebar-cart__checkout" type="submit" name="checkout">{{ section.settings.checkout_label | escape }}</button>
-				</form>
-				<a class="sidebar-cart__view" href="{{ routes.cart_url }}">{{ section.settings.view_cart_label | escape }}</a>
-			{% else %}
-				<div class="sidebar-cart__empty">
-					<p>{{ section.settings.empty_text | escape }}</p>
-					<a class="sidebar-cart__checkout" href="{{ routes.all_products_collection_url }}">{{ section.settings.continue_label | escape }}</a>
-				</div>
-			{% endif %}
+			<div
+				data-cart-content
+				data-empty-text="{{ section.settings.empty_text | escape }}"
+				data-continue-label="{{ section.settings.continue_label | escape }}"
+				data-quantity-label="{{ section.settings.quantity_label | escape }}"
+				data-subtotal-label="{{ section.settings.subtotal_label | escape }}"
+				data-shipping-note="{{ section.settings.shipping_note | escape }}"
+				data-checkout-label="{{ section.settings.checkout_label | escape }}"
+				data-view-cart-label="{{ section.settings.view_cart_label | escape }}"
+				data-cart-url="{{ routes.cart_url }}"
+				data-products-url="{{ routes.all_products_collection_url }}"
+				data-money-format="{{ shop.money_format | escape }}"
+				aria-live="polite"
+			>
+				{% if cart.item_count > 0 %}
+					<ul class="sidebar-cart__items">
+						{% for item in cart.items %}
+							<li class="sidebar-cart__item">
+								{% if item.image %}
+									<a class="sidebar-cart__image" href="{{ item.url }}">
+										{{ item.image | image_url: width: 180 | image_tag: loading: 'lazy', alt: item.image.alt | default: item.product.title }}
+									</a>
+								{% endif %}
+								<div class="sidebar-cart__details">
+									<div class="sidebar-cart__item-header">
+										<a class="sidebar-cart__title" href="{{ item.url }}">{{ item.product.title | escape }}</a>
+										<button
+											class="sidebar-cart__remove"
+											type="button"
+											data-cart-remove="{{ item.key | escape }}"
+											aria-label="Remove {{ item.product.title | escape }} from cart"
+											title="Remove item"
+										>
+											<svg viewBox="0 0 24 24" aria-hidden="true">
+												<path d="M4 7h16M10 11v6m4-6v6M6 7l1 14h10l1-14M9 7V4h6v3" />
+											</svg>
+										</button>
+									</div>
+									{% unless item.product.has_only_default_variant %}
+										<p class="sidebar-cart__variant">{{ item.variant.title | escape }}</p>
+									{% endunless %}
+									<p class="sidebar-cart__quantity">{{ section.settings.quantity_label | escape }}: {{ item.quantity }}</p>
+									<p class="sidebar-cart__price">{{ item.final_line_price | money }}</p>
+								</div>
+							</li>
+						{% endfor %}
+					</ul>
+					<div class="sidebar-cart__subtotal">
+						<span>{{ section.settings.subtotal_label | escape }}</span>
+						<strong>{{ cart.total_price | money }}</strong>
+					</div>
+					<p class="sidebar-cart__note">{{ section.settings.shipping_note | escape }}</p>
+					<form action="{{ routes.cart_url }}" method="post">
+						<button class="sidebar-cart__checkout" type="submit" name="checkout">{{ section.settings.checkout_label | escape }}</button>
+					</form>
+					<a class="sidebar-cart__view" href="{{ routes.cart_url }}">{{ section.settings.view_cart_label | escape }}</a>
+				{% else %}
+					<div class="sidebar-cart__empty">
+						<p>{{ section.settings.empty_text | escape }}</p>
+						<a class="sidebar-cart__checkout" href="{{ routes.all_products_collection_url }}">{{ section.settings.continue_label | escape }}</a>
+					</div>
+				{% endif %}
+			</div>
+			<p class="sidebar-cart__error" data-cart-error role="alert" hidden></p>
 			{{ section.settings.content }}
 		</div>
 	</aside>
@@ -195,6 +224,47 @@
 		text-decoration: none;
 	}
 
+	.sidebar-cart__item-header {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 10px;
+	}
+
+	.sidebar-cart__remove {
+		display: grid;
+		flex: 0 0 34px;
+		width: 34px;
+		height: 34px;
+		place-items: center;
+		border: 1px solid #f0d4d2;
+		border-radius: 6px;
+		background: #fff;
+		color: #c62828;
+		cursor: pointer;
+		transition: background-color 160ms ease, border-color 160ms ease;
+	}
+
+	.sidebar-cart__remove:hover {
+		border-color: #c62828;
+		background: #fff1f0;
+	}
+
+	.sidebar-cart__remove:disabled {
+		opacity: 0.55;
+		cursor: wait;
+	}
+
+	.sidebar-cart__remove svg {
+		width: 17px;
+		height: 17px;
+		fill: none;
+		stroke: currentColor;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		stroke-width: 1.7;
+	}
+
 	.sidebar-cart__subtotal {
 		display: flex;
 		justify-content: space-between;
@@ -245,6 +315,14 @@
 		text-align: center;
 	}
 
+	.sidebar-cart__error {
+		margin: 16px 0 0;
+		padding: 12px;
+		border-radius: 6px;
+		background: #fff1ef;
+		color: #8b2d20;
+	}
+
 	.sidebar-drawer[open] .sidebar-drawer__backdrop {
 		opacity: 1;
 		visibility: visible;
@@ -271,6 +349,8 @@
 		customElements.define('sidebar-drawer', class extends HTMLElement {
 			connectedCallback() {
 				this.panel = this.querySelector('.sidebar-drawer__panel');
+				this.cartContent = this.querySelector('[data-cart-content]');
+				this.cartError = this.querySelector('[data-cart-error]');
 				this.activeTrigger = null;
 				this.openDrawer = (trigger) => {
 					this.activeTrigger = trigger;
@@ -278,6 +358,37 @@
 					this.activeTrigger?.setAttribute('aria-expanded', 'true');
 					this.activeTrigger?.setAttribute('aria-controls', this.panel?.id || '');
 					this.panel?.focus();
+				};
+				this.onRemoveCartItem = async (event) => {
+					const removeButton = event.target.closest('[data-cart-remove]');
+					if (!removeButton || !this.contains(removeButton) || this.dataset.removingItem === 'true') return;
+
+					this.dataset.removingItem = 'true';
+					this.cartError.hidden = true;
+					removeButton.disabled = true;
+
+					try {
+						const response = await fetch(`${window.Shopify.routes.root}cart/change.js`, {
+							method: 'POST',
+							headers: {
+								Accept: 'application/json',
+								'Content-Type': 'application/json'
+							},
+							body: JSON.stringify({ id: removeButton.dataset.cartRemove, quantity: 0 })
+						});
+						const cart = await response.json();
+						if (!response.ok) {
+							throw new Error(cart.description || cart.message || 'The item could not be removed from your cart.');
+						}
+
+						this.renderCart(cart);
+					} catch (error) {
+						this.cartError.textContent = error instanceof Error ? error.message : 'The item could not be removed from your cart.';
+						this.cartError.hidden = false;
+						removeButton.disabled = false;
+					} finally {
+						this.dataset.removingItem = 'false';
+					}
 				};
 				this.closeDrawer = () => {
 					this.removeAttribute('open');
@@ -300,6 +411,51 @@
 					event.preventDefault();
 					this.openDrawer(cartLink);
 				};
+				this.onProductFormSubmit = async (event) => {
+					const form = event.target.closest('form.product-form');
+					if (!form || this.dataset.addingItem === 'true') return;
+
+					event.preventDefault();
+					this.dataset.addingItem = 'true';
+					this.cartError.hidden = true;
+
+					const submitter = event.submitter;
+					if (submitter) {
+						submitter.disabled = true;
+						submitter.setAttribute('aria-busy', 'true');
+					}
+
+					try {
+						const addResponse = await fetch(`${window.Shopify.routes.root}cart/add.js`, {
+							method: 'POST',
+							headers: { Accept: 'application/json' },
+							body: new FormData(form)
+						});
+						const addResult = await addResponse.json();
+						if (!addResponse.ok) {
+							throw new Error(addResult.description || addResult.message || 'The item could not be added to your cart.');
+						}
+
+						const cartResponse = await fetch(`${window.Shopify.routes.root}cart.js`, {
+							headers: { Accept: 'application/json' }
+						});
+						const cart = await cartResponse.json();
+						if (!cartResponse.ok) throw new Error('The item was added, but the cart could not be refreshed.');
+
+						this.renderCart(cart);
+						this.openDrawer(document.querySelector('[data-cart-drawer-trigger]'));
+					} catch (error) {
+						this.cartError.textContent = error instanceof Error ? error.message : 'The item could not be added to your cart.';
+						this.cartError.hidden = false;
+						this.openDrawer(document.querySelector('[data-cart-drawer-trigger]'));
+					} finally {
+						this.dataset.addingItem = 'false';
+						if (submitter) {
+							submitter.disabled = false;
+							submitter.removeAttribute('aria-busy');
+						}
+					}
+				};
 				this.onKeydown = (event) => {
 					if (event.key === 'Escape' && this.hasAttribute('open')) this.closeDrawer();
 				};
@@ -315,6 +471,8 @@
 					button.addEventListener('keydown', this.onCloseKeydown);
 				});
 				document.addEventListener('click', this.onCartTriggerClick);
+				document.addEventListener('click', this.onRemoveCartItem);
+				document.addEventListener('submit', this.onProductFormSubmit);
 				document.addEventListener('keydown', this.onKeydown);
 			}
 
@@ -324,7 +482,135 @@
 					button.removeEventListener('keydown', this.onCloseKeydown);
 				});
 				document.removeEventListener('click', this.onCartTriggerClick);
+				document.removeEventListener('click', this.onRemoveCartItem);
+				document.removeEventListener('submit', this.onProductFormSubmit);
 				document.removeEventListener('keydown', this.onKeydown);
+			}
+
+			formatMoney(cents) {
+				if (typeof window.Shopify.formatMoney === 'function') {
+					return window.Shopify.formatMoney(cents, this.cartContent.dataset.moneyFormat);
+				}
+
+				const currency = window.Shopify.currency?.active || 'USD';
+				return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(cents / 100);
+			}
+
+			renderCart(cart) {
+				const content = this.cartContent;
+				content.replaceChildren();
+
+				if (!cart.items.length) {
+					const empty = document.createElement('div');
+					empty.className = 'sidebar-cart__empty';
+					const message = document.createElement('p');
+					message.textContent = content.dataset.emptyText;
+					const continueLink = document.createElement('a');
+					continueLink.className = 'sidebar-cart__checkout';
+					continueLink.href = content.dataset.productsUrl;
+					continueLink.textContent = content.dataset.continueLabel;
+					empty.append(message, continueLink);
+					content.append(empty);
+				} else {
+					const items = document.createElement('ul');
+					items.className = 'sidebar-cart__items';
+
+					cart.items.forEach((item) => {
+						const row = document.createElement('li');
+						row.className = 'sidebar-cart__item';
+
+						if (item.image) {
+							const imageLink = document.createElement('a');
+							imageLink.className = 'sidebar-cart__image';
+							imageLink.href = item.url;
+							const image = document.createElement('img');
+							image.src = item.image;
+							image.alt = item.featured_image?.alt || item.product_title;
+							image.loading = 'lazy';
+							imageLink.append(image);
+							row.append(imageLink);
+						}
+
+						const details = document.createElement('div');
+						details.className = 'sidebar-cart__details';
+						const itemHeader = document.createElement('div');
+						itemHeader.className = 'sidebar-cart__item-header';
+						const title = document.createElement('a');
+						title.className = 'sidebar-cart__title';
+						title.href = item.url;
+						title.textContent = item.product_title;
+						const removeButton = document.createElement('button');
+						removeButton.className = 'sidebar-cart__remove';
+						removeButton.type = 'button';
+						removeButton.dataset.cartRemove = item.key;
+						removeButton.setAttribute('aria-label', `Remove ${item.product_title} from cart`);
+						removeButton.title = 'Remove item';
+						removeButton.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 14h10l1-14M9 7V4h6v3" /></svg>';
+						itemHeader.append(title, removeButton);
+						details.append(itemHeader);
+
+						if (item.variant_title && item.variant_title !== 'Default Title') {
+							const variant = document.createElement('p');
+							variant.className = 'sidebar-cart__variant';
+							variant.textContent = item.variant_title;
+							details.append(variant);
+						}
+
+						const quantity = document.createElement('p');
+						quantity.className = 'sidebar-cart__quantity';
+						quantity.textContent = `${content.dataset.quantityLabel}: ${item.quantity}`;
+						const price = document.createElement('p');
+						price.className = 'sidebar-cart__price';
+						price.textContent = this.formatMoney(item.final_line_price);
+						details.append(quantity, price);
+						row.append(details);
+						items.append(row);
+					});
+
+					const subtotal = document.createElement('div');
+					subtotal.className = 'sidebar-cart__subtotal';
+					const subtotalLabel = document.createElement('span');
+					subtotalLabel.textContent = content.dataset.subtotalLabel;
+					const subtotalPrice = document.createElement('strong');
+					subtotalPrice.textContent = this.formatMoney(cart.total_price);
+					subtotal.append(subtotalLabel, subtotalPrice);
+
+					const note = document.createElement('p');
+					note.className = 'sidebar-cart__note';
+					note.textContent = content.dataset.shippingNote;
+
+					const checkoutForm = document.createElement('form');
+					checkoutForm.action = content.dataset.cartUrl;
+					checkoutForm.method = 'post';
+					const checkout = document.createElement('button');
+					checkout.className = 'sidebar-cart__checkout';
+					checkout.type = 'submit';
+					checkout.name = 'checkout';
+					checkout.textContent = content.dataset.checkoutLabel;
+					checkoutForm.append(checkout);
+
+					const viewCart = document.createElement('a');
+					viewCart.className = 'sidebar-cart__view';
+					viewCart.href = content.dataset.cartUrl;
+					viewCart.textContent = content.dataset.viewCartLabel;
+					content.append(items, subtotal, note, checkoutForm, viewCart);
+				}
+
+				const cartTrigger = document.querySelector('[data-cart-drawer-trigger]');
+				if (cartTrigger) {
+					cartTrigger.setAttribute('aria-label', `Cart, ${cart.item_count} items`);
+					let count = cartTrigger.querySelector('.store-header__cart-count');
+					if (cart.item_count > 0) {
+						if (!count) {
+							count = document.createElement('span');
+							count.className = 'store-header__cart-count';
+							cartTrigger.append(count);
+						}
+						count.textContent = cart.item_count;
+					} else {
+						count?.remove();
+					}
+				}
 			}
 		});
 	}

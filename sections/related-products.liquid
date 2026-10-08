@@ -1,0 +1,279 @@
+<product-recommendations
+  class="related-products"
+  data-url="{{ routes.product_recommendations_url }}?section_id={{ section.id }}&product_id={{ product.id }}&limit={{ section.settings.products_to_show }}&intent=related"
+>
+  <div class="related-products__content" id="RelatedProducts-{{ section.id }}">
+    {% if recommendations.performed and recommendations.products_count > 0 %}
+      <section class="related-products__inner" aria-labelledby="RelatedProductsHeading-{{ section.id }}">
+        <h2 class="related-products__heading" id="RelatedProductsHeading-{{ section.id }}">
+          {{ section.settings.heading | escape }}
+        </h2>
+
+        <div class="related-products__grid">
+          {% for recommended_product in recommendations.products limit: section.settings.products_to_show %}
+            <article class="related-products__card">
+              <a class="related-products__image-link" href="{{ recommended_product.url }}">
+                {% if recommended_product.featured_media %}
+                  {{
+                    recommended_product.featured_media.preview_image
+                    | image_url: width: 700
+                    | image_tag:
+                      class: 'related-products__image',
+                      loading: 'lazy',
+                      widths: '240, 360, 500, 700',
+                      sizes: '(min-width: 990px) 25vw, (min-width: 600px) 33vw, 50vw',
+                      alt: recommended_product.featured_media.alt
+                    | default: recommended_product.title
+                    | escape
+                  }}
+                {% else %}
+                  {{ 'product-1' | placeholder_svg_tag: 'related-products__placeholder' }}
+                {% endif %}
+              </a>
+              <div class="related-products__details">
+                <h3 class="related-products__title">
+                  <a href="{{ recommended_product.url }}">{{ recommended_product.title | escape }}</a>
+                </h3>
+                <p class="related-products__price">{{ recommended_product.price | money }}</p>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+  </div>
+</product-recommendations>
+
+{% style %}
+  #shopify-section-{{ section.id }} .related-products {
+    display: block;
+    color: {{ section.settings.text_color }};
+    background: {{ section.settings.background_color }};
+  }
+
+  #shopify-section-{{ section.id }} .related-products__inner {
+    width: min(100% - 48px, 1280px);
+    margin-inline: auto;
+    padding-block: {{ section.settings.padding_top }}px {{ section.settings.padding_bottom }}px;
+  }
+
+  #shopify-section-{{ section.id }} .related-products__heading {
+    margin: 0 0 28px;
+    font-family: var(--font-heading--family);
+    font-size: clamp(1.6rem, 3vw, 2.4rem);
+    font-weight: 400;
+    line-height: 1.15;
+  }
+
+  #shopify-section-{{ section.id }} .related-products__grid {
+    display: grid;
+    grid-template-columns: repeat({{ section.settings.columns }}, minmax(0, 1fr));
+    gap: 24px 18px;
+  }
+
+  #shopify-section-{{ section.id }} .related-products__card {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid {{ section.settings.border_color }};
+    border-radius: {{ section.settings.corner_radius }}px;
+    background: {{ section.settings.card_color }};
+  }
+
+  #shopify-section-{{ section.id }} .related-products__image-link {
+    display: block;
+    overflow: hidden;
+    aspect-ratio: 4 / 5;
+    background: #f3f3ef;
+  }
+
+  #shopify-section-{{ section.id }} .related-products__image,
+  #shopify-section-{{ section.id }} .related-products__placeholder {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 220ms ease;
+  }
+
+  #shopify-section-{{ section.id }} .related-products__card:hover .related-products__image {
+    transform: scale(1.035);
+  }
+
+  #shopify-section-{{ section.id }} .related-products__details {
+    padding: 14px;
+  }
+
+  #shopify-section-{{ section.id }} .related-products__title {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 500;
+    line-height: 1.45;
+  }
+
+  #shopify-section-{{ section.id }} .related-products__title a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  #shopify-section-{{ section.id }} .related-products__title a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  #shopify-section-{{ section.id }} .related-products__price {
+    margin: 7px 0 0;
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 749px) {
+    #shopify-section-{{ section.id }} .related-products__inner {
+      width: calc(100% - 36px);
+      padding-block: {{ section.settings.padding_top | times: 0.7 | round }}px {{ section.settings.padding_bottom | times: 0.7 | round }}px;
+    }
+
+    #shopify-section-{{ section.id }} .related-products__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px 12px;
+    }
+
+    #shopify-section-{{ section.id }} .related-products__details {
+      padding: 11px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #shopify-section-{{ section.id }} .related-products__image {
+      transition: none;
+    }
+  }
+{% endstyle %}
+
+<script>
+  (() => {
+    if (customElements.get('product-recommendations')) return;
+
+    customElements.define('product-recommendations', class extends HTMLElement {
+      connectedCallback() {
+        if (this.dataset.loaded === 'true') return;
+        this.dataset.loaded = 'true';
+        this.loadRecommendations();
+      }
+
+      async loadRecommendations() {
+        const url = this.dataset.url;
+        if (!url) return;
+
+        try {
+          const response = await fetch(url, { headers: { Accept: 'text/html' } });
+          if (!response.ok) throw new Error(`Product recommendations request failed (${response.status}).`);
+
+          const html = await response.text();
+          const documentFromResponse = new DOMParser().parseFromString(html, 'text/html');
+          const recommendations = documentFromResponse.querySelector(
+            '#shopify-section-{{ section.id }} product-recommendations'
+          );
+          const content = recommendations?.querySelector('#RelatedProducts-{{ section.id }}');
+          const target = this.querySelector('#RelatedProducts-{{ section.id }}');
+
+          if (content && target) target.replaceChildren(...content.childNodes);
+          if (!target?.children.length) this.closest('.shopify-section')?.remove();
+        } catch (error) {
+          this.dataset.loaded = 'error';
+          console.error('Unable to load related products.', error);
+        }
+      }
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Related products",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "You may also like"
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "label": "Products to show",
+      "min": 2,
+      "max": 10,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "columns",
+      "label": "Desktop columns",
+      "min": 2,
+      "max": 5,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "corner_radius",
+      "label": "Card corner radius",
+      "min": 0,
+      "max": 24,
+      "step": 2,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top spacing",
+      "min": 16,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom spacing",
+      "min": 16,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "card_color",
+      "label": "Card background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text",
+      "default": "#252722"
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Card border",
+      "default": "#e1e3dc"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Related products",
+      "category": "Products"
+    }
+  ]
+}
+{% endschema %}
